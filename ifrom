@@ -1,0 +1,46 @@
+#!/bin/bash
+MIRROR="https://manopister.github.io/ifrom-mirror"
+BLUE='\033[1;34m'
+GREEN='\033[1;32m'
+RED='\033[1;31m'
+NC='\033[0m'
+progress() {
+    for i in {1..10}; do
+        echo -ne "\r${BLUE}%%%%%%%%%% ($i/10)${NC}"
+        sleep 0.1
+    done
+    echo ""
+}
+case "$1" in
+    dyf)
+        PKG=$2
+        if curl -sL "$MIRROR/packages.list" | grep -q "$PKG"; then
+            echo -e "Ifrom: 1 Found: ${GREEN}$PKG${NC}"
+            progress
+            echo -e "Requesting from $MIRROR..."
+            sudo wget -q "$MIRROR/$PKG.tar.zst" -O "/tmp/$PKG.tar.zst"
+            echo -e "Installing..."
+            sudo tar -xaf "/tmp/$PKG.tar.zst" -C / 2>/dev/null
+            progress
+	    echo -e "Extracting..."
+	    sudo tar -xaf "/tmp/$PKG.tar.zst" -C / 2>/dev/null
+            progress
+            echo -e "${GREEN}Instaled $PKG.${NC}"
+            sudo rm "/tmp/$PKG.tar.zst"
+        else
+            echo -e "${RED}Ifrom: $PKG: Not found."
+        fi
+        ;;
+    lite)
+        echo -e "$MIRROR..."
+        progress
+        if curl -sL -I "$MIRROR/packages.list" | grep -q "200"; then
+            echo -e "${GREEN}Ifrom: Mirror online.${NC}"
+        else
+            echo -e "${RED}Ifrom: Sync fault ($MIRROR)"
+        fi
+        ;;
+    *)
+        echo "ifrom dyf || ifrom lite"
+        ;;
+esac
